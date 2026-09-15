@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}
+model Eleve {
+  id                String     @id @default(uuid())
+  nom_prenom        String
+  niveau            String
+  matiere           String?
+  phone             String
+  quartier          String
+  ecole_frequenter  String
+  frais_encadrement Float
+  date_inscription  DateTime   @default(now())
+
+  paiements         Paiement[]
+
+  createdAt         DateTime   @default(now())
+  // 🔽 Modifiez cette ligne en ajoutant @default(now()) 🔽
+  updatedAt         DateTime   @default(now()) @updatedAt
+}
+
+model Paiement {
+  id            String   @id @default(uuid())
+  montant       Float
+  mois          String
+  annee         Int
+  date_paiement DateTime @default(now())
+  statut        String   @default("PAYE")
+  mode_paiement String?
+
+  eleveId       String
+  eleve         Eleve    @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@unique([eleveId, mois, annee])
+}
