@@ -10,7 +10,8 @@ import {
   ListChecks, 
   HandCoins, 
   UserPlus, 
-  Users 
+  Users,
+  Printer 
 } from 'lucide-react';
 
 export default function SideBar() {
@@ -88,7 +89,10 @@ export default function SideBar() {
             <Users className="w-5 h-5 text-slate-400" />
             <span>Liste Élèves</span>
           </Link>
-
+           <Link href="/eleve/imprimer" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-700 hover:text-white transition-colors text-blue-400 font-semibold">
+            <Printer className="w-5 h-5 text-blue-400" />
+            <span>Impression & Listes</span>
+          </Link>
           {/* Inscription */}
           <Link 
             href="/eleve/ajouter" 

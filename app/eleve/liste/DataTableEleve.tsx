@@ -68,15 +68,9 @@ export default function DataTableEleve({ initialEleves }: { initialEleves: Eleve
       (eleve.quartier && eleve.quartier.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesNiveau = selectedNiveau === "" || eleve.niveau === selectedNiveau;
-
-    // Statut : Considéré comme payé si frais_encadrement > 0
-    const isPaye = Number(eleve.frais_encadrement) > 0;
-    const matchesStatut =
-      filterStatut === "tous" ||
-      (filterStatut === "paye" && isPaye) ||
-      (filterStatut === "non_paye" && !isPaye);
-
-    return matchesSearch && matchesNiveau && matchesStatut;
+    
+    
+    return matchesSearch && matchesNiveau;
   });
 
   // Extraction unique des niveaux pour le filtre
@@ -117,9 +111,8 @@ export default function DataTableEleve({ initialEleves }: { initialEleves: Eleve
           onChange={(e) => setFilterStatut(e.target.value as any)}
           className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500 text-sm"
         >
-          <option value="tous">Tous les statuts de paiement</option>
-          <option value="paye">Payé (Frais réglés)</option>
-          <option value="non_paye">Non payé (En attente)</option>
+          <option value="tous">Toutes les statuts d'inscriptions</option>
+      
         </select>
       </div>
 
@@ -140,7 +133,6 @@ export default function DataTableEleve({ initialEleves }: { initialEleves: Eleve
           <tbody className="divide-y divide-slate-700">
             {filteredEleves.length > 0 ? (
               filteredEleves.map((eleve) => {
-                const estPaye = Number(eleve.frais_encadrement) > 0;
                 return (
                   <tr key={eleve.id} className="hover:bg-slate-750 transition-colors">
                     <td className="p-4 font-semibold text-slate-100">{eleve.nom_prenom}</td>
@@ -162,17 +154,10 @@ export default function DataTableEleve({ initialEleves }: { initialEleves: Eleve
                     <td className="p-4 font-semibold text-slate-200">
                       {Number(eleve.frais_encadrement).toLocaleString()} FCFA
                     </td>
-                    <td className="p-4">
-                      {estPaye ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <CheckCircle size={14} /> Payé
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                          <XCircle size={14} /> Non payé
-                        </span>
-                      )}
+                     <td className="p-4 font-semibold text-slate-200">
+                      Inscrit(e)
                     </td>
+                   
                     <td className="p-4 text-center">
                       <div className="flex justify-center items-center gap-2">
                         {/* Bouton Modifier */}
