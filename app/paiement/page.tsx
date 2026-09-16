@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import FormulairePaiement from "./nouveau/FormulairePaiement";
 import TablePaiements from "./TablePaiements";
 

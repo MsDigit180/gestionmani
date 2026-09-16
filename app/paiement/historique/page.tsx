@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import HistoriqueMensuel from "./HistoriqueMensuel";
 
 export default async function HistoriquePaiementsPage() {

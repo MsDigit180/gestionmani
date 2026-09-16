@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import DataTableEleve from "./DataTableEleve";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
