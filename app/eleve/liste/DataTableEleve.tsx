@@ -2,11 +2,10 @@
 
 import { toast } from "sonner";
 import { useState } from "react";
-import { Trash2, Edit, Search, CheckCircle, XCircle } from "lucide-react";
+import { Trash2, Edit, Search, Printer } from "lucide-react";
 import Link from "next/link";
 import { deleteEleve } from "../actions";
 
-// Type exact généré selon votre modèle Prisma Eleve
 export interface Eleve {
   id: string;
   nom_prenom: string;
@@ -19,69 +18,69 @@ export interface Eleve {
   date_inscription?: Date | string;
 }
 
-export function BoutonSupprimer({ eleveId }: { eleveId: string }) {
-  async function handleDelete() {
-    if (confirm("Voulez-vous vraiment supprimer cet élève ?")) {
-      const result = await deleteEleve(eleveId);
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
-      }
-    }
-  }
-
-  return (
-    <button
-      onClick={handleDelete}
-      className="p-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg transition-colors"
-      title="Supprimer"
-    >
-      <Trash2 size={16} />
-    </button>
-  );
-}
-
 export default function DataTableEleve({ initialEleves }: { initialEleves: Eleve[] }) {
   const [eleves, setEleves] = useState<Eleve[]>(initialEleves);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedNiveau, setSelectedNiveau] = useState("");
   const [filterStatut, setFilterStatut] = useState<"tous" | "paye" | "non_paye">("tous");
 
-  // Fonction de suppression mise à jour avec Toast
   const handleDelete = async (id: string, nom: string) => {
     if (confirm(`Voulez-vous vraiment supprimer l'élève ${nom} ?`)) {
       const res = await deleteEleve(id);
       if (res.success) {
-        toast.success(res.message); // 👈 Toast succès
+        toast.success(res.message);
         setEleves(eleves.filter((e) => e.id !== id));
       } else {
-        toast.error(res.message);   // 👈 Toast erreur
+        toast.error(res.message);
       }
     }
   };
 
-  // Filtrage combiné (nom, quartier, niveau et statut de paiement)
+  const handlePrint = () => {
+    window.print();
+  };
+
   const filteredEleves = eleves.filter((eleve) => {
     const matchesSearch =
       eleve.nom_prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (eleve.quartier && eleve.quartier.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesNiveau = selectedNiveau === "" || eleve.niveau === selectedNiveau;
-    
-    
+
     return matchesSearch && matchesNiveau;
   });
 
-  // Extraction unique des niveaux pour le filtre
   const niveauxUniques = Array.from(new Set(eleves.map((e) => e.niveau))).filter(Boolean);
 
   return (
     <div className="space-y-6">
-      {/* Barre de Recherche et Filtres */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
-        
-        {/* Recherche par Nom ou Quartier */}
+      {/* CSS d'impression pour masquer TOUT sauf le tableau */}
+      <style jsx global>{`
+        @media print {
+          /* Masque tout le body */
+          body * {
+            visibility: hidden;
+          }
+          /* Affiche uniquement la zone d'impression du tableau */
+          #print-area, #print-area * {
+            visibility: visible;
+          }
+          #print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white !important;
+            color: black !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      {/* Barre de Recherche, Filtres et Bouton Imprimer (Masqués à l'impression) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
         <div className="relative">
           <Search className="absolute left-3 top-3 text-slate-400" size={18} />
           <input
@@ -93,7 +92,6 @@ export default function DataTableEleve({ initialEleves }: { initialEleves: Eleve
           />
         </div>
 
-        {/* Filtre par Niveau */}
         <select
           value={selectedNiveau}
           onChange={(e) => setSelectedNiveau(e.target.value)}
@@ -105,85 +103,97 @@ export default function DataTableEleve({ initialEleves }: { initialEleves: Eleve
           ))}
         </select>
 
-        {/* Filtre par Statut de Paiement */}
         <select
           value={filterStatut}
           onChange={(e) => setFilterStatut(e.target.value as any)}
           className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500 text-sm"
         >
-          <option value="tous">Toutes les statuts d'inscriptions</option>
-      
+          <option value="tous">Tous les statuts d'inscriptions</option>
         </select>
+
+        <button
+          onClick={handlePrint}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors text-sm"
+        >
+          <Printer size={18} />
+          <span>Imprimer le tableau</span>
+        </button>
       </div>
 
-      {/* Tableau des Élèves */}
-      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg">
-        <table className="w-full text-left text-sm text-slate-300">
-          <thead className="bg-slate-900/80 text-slate-400 uppercase text-xs border-b border-slate-700">
+      {/* Zone imprimable isolée via id="print-area" */}
+      <div id="print-area" className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg p-2 print:border-none print:shadow-none">
+        
+        {/* Titre visible uniquement à l'impression */}
+        <div className="hidden print:block mb-4">
+          <h1 className="text-xl font-bold text-black">Liste des Élèves</h1>
+          <p className="text-xs text-gray-600">
+            Total : {filteredEleves.length} élève(s) {selectedNiveau && `- Niveau : ${selectedNiveau}`}
+          </p>
+        </div>
+
+        <table className="w-full text-left text-sm text-slate-300 print:text-black print:border-collapse">
+          <thead className="bg-slate-900/80 text-slate-400 uppercase text-xs border-b border-slate-700 print:bg-gray-100 print:text-black">
             <tr>
-              <th className="p-4">Nom & Prénom</th>
-              <th className="p-4">Niveau / Matière</th>
-              <th className="p-4">Téléphone</th>
-              <th className="p-4">École / Quartier</th>
-              <th className="p-4">Frais</th>
-              <th className="p-4">Statut</th>
-              <th className="p-4 text-center">Actions</th>
+              <th className="p-4 print:p-2 print:border print:border-gray-300">Nom & Prénom</th>
+              <th className="p-4 print:p-2 print:border print:border-gray-300">Niveau / Matière</th>
+              <th className="p-4 print:p-2 print:border print:border-gray-300">Téléphone</th>
+              <th className="p-4 print:p-2 print:border print:border-gray-300">École / Quartier</th>
+              <th className="p-4 print:p-2 print:border print:border-gray-300">Frais</th>
+              <th className="p-4 print:p-2 print:border print:border-gray-300">Statut</th>
+              <th className="p-4 text-center no-print">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-slate-700 print:divide-gray-300">
             {filteredEleves.length > 0 ? (
-              filteredEleves.map((eleve) => {
-                return (
-                  <tr key={eleve.id} className="hover:bg-slate-750 transition-colors">
-                    <td className="p-4 font-semibold text-slate-100">{eleve.nom_prenom}</td>
-                    <td className="p-4">
-                      <div className="flex flex-col gap-1 items-start">
-                        <span className="px-2 py-0.5 bg-slate-700 rounded text-xs text-blue-300 font-medium">
-                          {eleve.niveau}
-                        </span>
-                        {eleve.matiere && (
-                          <span className="text-xs text-slate-400">{eleve.matiere}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4">{eleve.phone}</td>
-                    <td className="p-4">
-                      <div>{eleve.ecole_frequenter}</div>
-                      <div className="text-xs text-slate-400">{eleve.quartier}</div>
-                    </td>
-                    <td className="p-4 font-semibold text-slate-200">
-                      {Number(eleve.frais_encadrement).toLocaleString()} FCFA
-                    </td>
-                     <td className="p-4 font-semibold text-slate-200">
-                      Inscrit(e)
-                    </td>
-                   
-                    <td className="p-4 text-center">
-                      <div className="flex justify-center items-center gap-2">
-                        {/* Bouton Modifier */}
-                        <Link
-                          href={`/eleve/modifier/${eleve.id}`}
-                          className="p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors"
-                          title="Modifier"
-                        >
-                          <Edit size={16} />
-                        </Link>
-                        {/* Bouton Supprimer */}
-                        <button
-                          onClick={() => handleDelete(eleve.id, eleve.nom_prenom)}
-                          className="p-2 bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 rounded-lg transition-colors"
-                          title="Supprimer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+              filteredEleves.map((eleve) => (
+                <tr key={eleve.id} className="hover:bg-slate-750 transition-colors">
+                  <td className="p-4 font-semibold text-slate-100 print:text-black print:p-2 print:border print:border-gray-300">
+                    {eleve.nom_prenom}
+                  </td>
+                  <td className="p-4 print:p-2 print:border print:border-gray-300">
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className="px-2 py-0.5 bg-slate-700 rounded text-xs text-blue-300 font-medium print:bg-transparent print:text-black print:p-0">
+                        {eleve.niveau}
+                      </span>
+                      {eleve.matiere && (
+                        <span className="text-xs text-slate-400 print:text-gray-600">{eleve.matiere}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="p-4 print:p-2 print:border print:border-gray-300">{eleve.phone}</td>
+                  <td className="p-4 print:p-2 print:border print:border-gray-300">
+                    <div>{eleve.ecole_frequenter}</div>
+                    <div className="text-xs text-slate-400 print:text-gray-600">{eleve.quartier}</div>
+                  </td>
+                  <td className="p-4 font-semibold text-slate-200 print:text-black print:p-2 print:border print:border-gray-300">
+                    {Number(eleve.frais_encadrement).toLocaleString()} FCFA
+                  </td>
+                  <td className="p-4 font-semibold text-slate-200 print:text-black print:p-2 print:border print:border-gray-300">
+                    Inscrit(e)
+                  </td>
+                  <td className="p-4 text-center no-print">
+                    <div className="flex justify-center items-center gap-2">
+                      <Link
+                        href={`/eleve/modifier/${eleve.id}`}
+                        className="p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors"
+                        title="Modifier"
+                      >
+                        <Edit size={16} />
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(eleve.id, eleve.nom_prenom)}
+                        className="p-2 bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 rounded-lg transition-colors"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-slate-500">
+                <td colSpan={7} className="p-8 text-center text-slate-500 print:text-black">
                   Aucun élève trouvé.
                 </td>
               </tr>

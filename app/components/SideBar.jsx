@@ -91,7 +91,7 @@ export default function SideBar() {
           </Link>
            <Link href="/eleve/imprimer" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-700 hover:text-white transition-colors text-blue-400 font-semibold">
             <Printer className="w-5 h-5 text-blue-400" />
-            <span>Impression & Listes</span>
+            <span>Liste d'Elèves à jour</span>
           </Link>
           {/* Inscription */}
           <Link 
