@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import DataTableEleve from "./DataTableEleve";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
+import { OnlineOnlyFeature } from '../../components/OnlineOnlyFeature';
 
 export const revalidate = 0; // Récupère toujours les données en temps réel
 
@@ -36,7 +37,9 @@ export default async function ListeElevesPage() {
       </div>
 
       {/* Affichage du composant Data Table */}
+      <OnlineOnlyFeature>
       <DataTableEleve initialEleves={eleves} />
+      </OnlineOnlyFeature>
     </div>
   );
 }
