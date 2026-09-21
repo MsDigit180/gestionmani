@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Printer, RefreshCw, FileText } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState } from 'react';
+import { Printer, FileText } from 'lucide-react';
+import { useQuery } from '@powersync/react';
 
 type Paiement = {
   id: string;
@@ -11,6 +11,7 @@ type Paiement = {
   annee: number;
   statut: string;
   date_paiement: string;
+  eleve_id: string;
 };
 
 type Eleve = {
@@ -22,7 +23,7 @@ type Eleve = {
   quartier: string;
   ecole_frequenter: string;
   frais_encadrement: number;
-  paiements: Paiement[];
+  date_inscription?: string;
 };
 
 const MOIS_LISTE = [
@@ -31,8 +32,16 @@ const MOIS_LISTE = [
 ];
 
 export default function PrintStudentsPage() {
-  const [eleves, setEleves] = useState<Eleve[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 1. Récupération réactive et hors-ligne via PowerSync
+  const { data: rawEleves = [], isLoading: loadingEleves } = useQuery<Eleve>(
+    `SELECT * FROM eleves ORDER BY nom_prenom ASC`
+  );
+
+  const { data: rawPaiements = [], isLoading: loadingPaiements } = useQuery<Paiement>(
+    `SELECT * FROM paiements`
+  );
+
+  const loading = loadingEleves || loadingPaiements;
 
   // Filtres
   const [selectedMois, setSelectedMois] = useState<string>('Septembre');
@@ -41,52 +50,37 @@ export default function PrintStudentsPage() {
   const [filterEcole, setFilterEcole] = useState<string>('');
   const [filterQuartier, setFilterQuartier] = useState<string>('');
 
-  const fetchEleves = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/eleves');
-      if (res.ok) {
-        const data = await res.json();
-        setEleves(data);
-      } else {
-        toast.error('Impossible de charger les données');
-      }
-    } catch (error) {
-      toast.error('Erreur réseau lors du chargement des élèves');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 2. Association des paiements aux élèves correspondants
+  const eleves: (Eleve & { paiements: Paiement[] })[] = rawEleves.map((eleve) => ({
+    ...eleve,
+    paiements: rawPaiements.filter((p) => p.eleve_id === eleve.id)
+  }));
 
-  useEffect(() => {
-    fetchEleves();
-  }, []);
-
-  // Filtrer les élèves ayant réglé l'encadrement pour le mois et l'année sélectionnés
+  // 3. Filtrage des élèves ayant réglé l'encadrement pour le mois et l'année sélectionnés
   const filteredEleves = eleves.filter((eleve) => {
     const aPayeCeMois = eleve.paiements?.some((p) => {
-      const matchMois = p.mois.toLowerCase().trim() === selectedMois.toLowerCase().trim();
+      const matchMois = p.mois?.toLowerCase().trim() === selectedMois.toLowerCase().trim();
       const matchAnnee = Number(p.annee) === Number(selectedAnnee);
       const matchStatut = p.statut === 'PAYE';
       return matchMois && matchAnnee && matchStatut;
     });
 
     const matchNiveau =
-      filterNiveau === '' || eleve.niveau.toLowerCase().includes(filterNiveau.toLowerCase());
+      filterNiveau === '' || eleve.niveau?.toLowerCase().includes(filterNiveau.toLowerCase());
     const matchEcole =
-      filterEcole === '' || eleve.ecole_frequenter.toLowerCase().includes(filterEcole.toLowerCase());
+      filterEcole === '' || eleve.ecole_frequenter?.toLowerCase().includes(filterEcole.toLowerCase());
     const matchQuartier =
-      filterQuartier === '' || eleve.quartier.toLowerCase().includes(filterQuartier.toLowerCase());
+      filterQuartier === '' || eleve.quartier?.toLowerCase().includes(filterQuartier.toLowerCase());
 
     return aPayeCeMois && matchNiveau && matchEcole && matchQuartier;
   });
 
-  // Calcul du montant total perçu pour la sélection
+  // 4. Calcul du montant total perçu pour la sélection
   const totalEncaisse = filteredEleves.reduce((acc, eleve) => {
     const p = eleve.paiements.find(
-      (pay) => pay.mois.toLowerCase().trim() === selectedMois.toLowerCase().trim() && Number(pay.annee) === Number(selectedAnnee)
+      (pay) => pay.mois?.toLowerCase().trim() === selectedMois.toLowerCase().trim() && Number(pay.annee) === Number(selectedAnnee)
     );
-    return acc + (p?.montant || eleve.frais_encadrement);
+    return acc + (p?.montant || eleve.frais_encadrement || 0);
   }, 0);
 
   const handlePrint = () => {
@@ -95,7 +89,7 @@ export default function PrintStudentsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Styles CSS d'isolation pour l'impression */}
+      {/* CSS pour isoler le tableau à l'impression */}
       <style jsx global>{`
         @media print {
           aside, header, nav, .print\\:hidden {
@@ -126,17 +120,10 @@ export default function PrintStudentsPage() {
               Impression des Élèves à Jour
             </h1>
             <p className="text-sm text-slate-400">
-              Visualisez et imprimez la liste des élèves ayant réglé leur encadrement par mois
+              Visualisez et imprimez la liste des élèves ayant réglé leur encadrement par mois (Mode hors-ligne)
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={fetchEleves}
-              className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition"
-              title="Actualiser les données"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </button>
             <button
               onClick={handlePrint}
               disabled={loading || filteredEleves.length === 0}
@@ -223,7 +210,7 @@ export default function PrintStudentsPage() {
       {/* ZONE D'IMPRESSION DU TABLEAU */}
       <div className="printable-content bg-slate-800 border border-slate-700 rounded-xl overflow-hidden print:bg-white print:text-black print:border-none p-0 print:p-2">
         
-        {/* En-tête imprimé uniquement */}
+        {/* En-tête visible uniquement sur l'impression */}
         <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
           <div className="flex justify-between items-start">
             <div>
@@ -235,12 +222,11 @@ export default function PrintStudentsPage() {
               <p><strong>Date d'impression :</strong> {new Date().toLocaleDateString('fr-FR')}</p>
             </div>
           </div>
-         
         </div>
 
         {loading ? (
           <div className="p-8 text-center text-slate-400 print:text-black font-medium">
-            Chargement de la liste depuis la base de données...
+            Chargement de la liste hors-ligne depuis SQLite...
           </div>
         ) : filteredEleves.length === 0 ? (
           <div className="p-8 text-center text-slate-400 print:text-black font-medium">
@@ -282,7 +268,7 @@ export default function PrintStudentsPage() {
                     {eleve.quartier}
                   </td>
                   <td className="px-6 py-4 print:py-1.5 print:px-2 text-slate-100 print:text-black print:border print:border-black font-mono text-right">
-                    {eleve.frais_encadrement.toLocaleString('fr-FR')} FCFA
+                    {(eleve.frais_encadrement || 0).toLocaleString('fr-FR')} FCFA
                   </td>
                   <td className="px-6 py-4 print:py-1.5 print:px-2 print:border print:border-black text-center">
                     <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 print:text-black print:p-0">
@@ -295,7 +281,7 @@ export default function PrintStudentsPage() {
           </table>
         )}
 
-        {/* Bilan et Cachet imprimés */}
+        {/* Bilan et Signature imprimés */}
         <div className="hidden print:flex justify-between items-end mt-8 pt-4 border-t-2 border-black text-xs">
           <div>
             <p><strong>Total élèves à jour :</strong> {filteredEleves.length}</p>

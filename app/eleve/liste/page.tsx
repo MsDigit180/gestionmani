@@ -1,4 +1,4 @@
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import DataTableEleve from "./DataTableEleve";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
@@ -7,11 +7,17 @@ export const revalidate = 0; // Récupère toujours les données en temps réel
 
 export default async function ListeElevesPage() {
   // Récupération de tous les élèves depuis PostgreSQL
-  const eleves = await prisma.eleve.findMany({
+  const elevesRaw = await prisma.eleve.findMany({
     orderBy: {
       id: "desc",
     },
   });
+
+  // Conversion / Normalisation pour garantir que matiere n'est pas null
+  const eleves = elevesRaw.map((eleve) => ({
+    ...eleve,
+    matiere: eleve.matiere ?? "",
+  }));
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">

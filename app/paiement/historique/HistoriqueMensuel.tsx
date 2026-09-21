@@ -25,21 +25,24 @@ const MOIS_LISTE = [
 ];
 
 export default function HistoriqueMensuel({ paiements }: { paiements: PaiementComplet[] }) {
-  const [moisFiltre, setMoisFiltre] = useState(MOIS_LISTE[new Date().getMonth()]);
+  // Option "Tous" par défaut pour tout afficher, ou remplacez par `MOIS_LISTE[new Date().getMonth()]` si vous préférez démarrer sur le mois en cours
+  const [moisFiltre, setMoisFiltre] = useState("Tous");
   const [anneeFiltre, setAnneeFiltre] = useState(new Date().getFullYear());
   const [rechercheEleve, setRechercheEleve] = useState("");
 
-  const paiementsDuMois = paiements.filter((p) => {
-    const correspondMoisAnnee = p.mois === moisFiltre && p.annee === Number(anneeFiltre);
+  const paiementsFiltres = paiements.filter((p) => {
+    const correspondMois = moisFiltre === "Tous" || p.mois === moisFiltre;
+    const correspondAnnee = !anneeFiltre || p.annee === Number(anneeFiltre);
     const correspondRecherche = p.eleve.nom_prenom.toLowerCase().includes(rechercheEleve.toLowerCase());
-    return correspondMoisAnnee && correspondRecherche;
+
+    return correspondMois && correspondAnnee && correspondRecherche;
   });
 
-  const totalMois = paiementsDuMois.reduce((sum, p) => sum + p.montant, 0);
+  const totalMois = paiementsFiltres.reduce((sum, p) => sum + p.montant, 0);
 
   return (
     <div className="space-y-6">
-      {/* Filtres & Statistiques du mois */}
+      {/* Filtres & Statistiques */}
       <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
@@ -51,6 +54,7 @@ export default function HistoriqueMensuel({ paiements }: { paiements: PaiementCo
               onChange={(e) => setMoisFiltre(e.target.value)}
               className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
             >
+              <option value="Tous">Tous les mois</option>
               {MOIS_LISTE.map((m) => (
                 <option key={m} value={m}>{m}</option>
               ))}
@@ -87,13 +91,13 @@ export default function HistoriqueMensuel({ paiements }: { paiements: PaiementCo
           <div className="bg-slate-900/60 border border-slate-700 p-4 rounded-lg">
             <span className="text-xs text-slate-400 block font-medium">Nombre de règlements</span>
             <span className="text-2xl font-bold text-slate-100">
-              {paiementsDuMois.length} élève(s)
+              {paiementsFiltres.length} règlement(s)
             </span>
           </div>
 
           <div className="bg-emerald-950/40 border border-emerald-800/40 p-4 rounded-lg">
             <span className="text-xs text-emerald-400 block font-medium">
-              Total Encaissé en {moisFiltre} {anneeFiltre}
+              Total Encaissé {moisFiltre !== "Tous" ? `en ${moisFiltre}` : "Global"} {anneeFiltre}
             </span>
             <span className="text-2xl font-extrabold text-emerald-400">
               {totalMois.toLocaleString()} FCFA
@@ -110,14 +114,15 @@ export default function HistoriqueMensuel({ paiements }: { paiements: PaiementCo
               <th className="px-6 py-3">Élève</th>
               <th className="px-6 py-3">Niveau</th>
               <th className="px-6 py-3">Téléphone</th>
+              <th className="px-6 py-3">Mois payé</th>
               <th className="px-6 py-3">Date de paiement</th>
               <th className="px-6 py-3">Mode</th>
               <th className="px-6 py-3 text-right">Montant</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/50">
-            {paiementsDuMois.length > 0 ? (
-              paiementsDuMois.map((p) => (
+            {paiementsFiltres.length > 0 ? (
+              paiementsFiltres.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-700/30 transition">
                   <td className="px-6 py-4 font-semibold text-slate-100">
                     {p.eleve.nom_prenom}
@@ -129,6 +134,9 @@ export default function HistoriqueMensuel({ paiements }: { paiements: PaiementCo
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-400">
                     {p.eleve.phone}
+                  </td>
+                  <td className="px-6 py-4 text-xs font-medium text-slate-300">
+                    {p.mois} {p.annee}
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-300">
                     {new Date(p.date_paiement).toLocaleDateString("fr-FR")}
@@ -145,8 +153,8 @@ export default function HistoriqueMensuel({ paiements }: { paiements: PaiementCo
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-6 py-10 text-center text-slate-400">
-                  Aucun paiement trouvé pour <strong className="text-slate-200">{moisFiltre} {anneeFiltre}</strong>.
+                <td colSpan={7} className="px-6 py-10 text-center text-slate-400">
+                  Aucun paiement trouvé pour {moisFiltre !== "Tous" ? <strong className="text-slate-200">{moisFiltre} </strong> : ""}<strong className="text-slate-200">{anneeFiltre}</strong>.
                 </td>
               </tr>
             )}

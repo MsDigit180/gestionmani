@@ -10,7 +10,7 @@ interface Eleve {
   id: string;
   nom_prenom: string;
   niveau: string;
-  matiere: string;
+  matiere: string|null;
   phone: string;
   frais_encadrement: number;
   quartier: string;
@@ -75,7 +75,7 @@ export default function ModifierEleveForm({ eleve }: { eleve: Eleve }) {
           <input
             type="text"
             name="matiere"
-            defaultValue={eleve.matiere}
+            defaultValue={eleve.matiere ?? ''}
             className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
           />
         </div>
