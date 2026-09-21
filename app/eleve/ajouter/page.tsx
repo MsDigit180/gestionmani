@@ -45,7 +45,7 @@ export default function FormulaireEleve() {
       onSubmit={handleSubmit}
       className="space-y-4 bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-xl mx-auto text-slate-100"
     >
-      <h2 className="text-xl font-bold mb-4">Ajouter un élève (Hors-ligne)</h2>
+      <h2 className="text-xl font-bold mb-4">Ajouter un élève </h2>
 
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-1">
