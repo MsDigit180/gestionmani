@@ -11,7 +11,7 @@ import {
   HandCoins, 
   UserPlus, 
   Users,
-  Printer 
+  Printer,AlertCircle
 } from 'lucide-react';
 
 export default function SideBar() {
@@ -93,6 +93,14 @@ export default function SideBar() {
             <Printer className="w-5 h-5 text-blue-400" />
             <span>Liste d'Elèves à jour</span>
           </Link>
+         
+         <Link
+           href="/api/eleves/impayes"
+          className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-amber-400 rounded-xl transition-colors"
+          >
+          <AlertCircle size={20} className="text-amber-500" />
+         <span className="font-medium">Élèves Impayés</span>
+        </Link>
           {/* Inscription */}
           <Link 
             href="/eleve/ajouter" 
