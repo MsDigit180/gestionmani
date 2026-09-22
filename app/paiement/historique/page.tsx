@@ -1,7 +1,7 @@
 import {prisma} from "@/lib/prisma";
 import { OnlineOnlyFeature } from '../../components/OnlineOnlyFeature';
 import HistoriqueMensuel from "./HistoriqueMensuel";
-
+export const dynamic = 'force-dynamic';
 export default async function HistoriquePaiementsPage() {
   const paiements = await prisma.paiement.findMany({
     include: {

@@ -5,7 +5,7 @@ import { UserPlus } from "lucide-react";
 import { OnlineOnlyFeature } from '../../components/OnlineOnlyFeature';
 
 export const revalidate = 0; // Récupère toujours les données en temps réel
-
+export const dynamic = 'force-dynamic';
 export default async function ListeElevesPage() {
   // Récupération de tous les élèves depuis PostgreSQL
   const elevesRaw = await prisma.eleve.findMany({
