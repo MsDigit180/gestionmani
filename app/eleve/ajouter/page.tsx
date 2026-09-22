@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { db } from '@/lib/powersync/db';
+export const dynamic = 'force-dynamic';
 
 export default function FormulaireEleve() {
   const [loading, setLoading] = useState(false);
