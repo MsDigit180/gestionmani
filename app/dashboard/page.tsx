@@ -6,7 +6,7 @@ const MOIS_NOMS = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
-
+export const dynamic = 'force-dynamic';
 export default async function DashboardPage() {
   const eleves = await prisma.eleve.findMany();
   const paiements = await prisma.paiement.findMany();
