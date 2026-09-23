@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { db } from '@/lib/powersync/db';
-export const dynamic = 'force-dynamic';
+import  {ajouterEleveAction}  from '@/app/eleve/action/eleves'; 
 
 export default function FormulaireEleve() {
   const [loading, setLoading] = useState(false);
@@ -13,32 +12,16 @@ export default function FormulaireEleve() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const nom_prenom = formData.get('nom_prenom') as string;
-    const niveau = formData.get('niveau') as string;
-    const matiere = formData.get('matiere') as string;
-    const phone = formData.get('phone') as string;
-    const quartier = formData.get('quartier') as string;
-    const ecole_frequenter = formData.get('ecole_frequenter') as string;
-    const frais_encadrement = Number(formData.get('frais_encadrement') || 0);
+    const result = await ajouterEleveAction(formData);
 
-    try {
-      const id = crypto.randomUUID();
-      const now = new Date().toISOString();
-
-      await db.execute(
-        `INSERT INTO eleves (id, nom_prenom, niveau, matiere, phone, quartier, ecole_frequenter, frais_encadrement, date_inscription, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, nom_prenom, niveau, matiere, phone, quartier, ecole_frequenter, frais_encadrement, now, now, now]
-      );
-
+    if (result.success) {
       toast.success("Élève ajouté avec succès !");
       (e.target as HTMLFormElement).reset();
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de l'enregistrement de l'élève.");
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(result.error || "Erreur lors de l'enregistrement.");
     }
+
+    setLoading(false);
   };
 
   return (
@@ -46,7 +29,7 @@ export default function FormulaireEleve() {
       onSubmit={handleSubmit}
       className="space-y-4 bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-xl mx-auto text-slate-100"
     >
-      <h2 className="text-xl font-bold mb-4">Ajouter un élève </h2>
+      <h2 className="text-xl font-bold mb-4">Ajouter un élève</h2>
 
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-1">
