@@ -15,7 +15,7 @@ const MOIS_LISTE = [
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
 
-export default function FormulairePaiement({ eleves }: { eleves: EleveSimple[] }) {
+export default function FormulairePaiement({ eleves = [] }: { eleves?: EleveSimple[] }) {
   const [loading, setLoading] = useState(false);
   const [selectedEleveId, setSelectedEleveId] = useState("");
   const [montant, setMontant] = useState<number | "">("");
@@ -26,6 +26,8 @@ export default function FormulairePaiement({ eleves }: { eleves: EleveSimple[] }
     const eleve = eleves.find((e) => e.id === id);
     if (eleve) {
       setMontant(eleve.frais_encadrement);
+    } else {
+      setMontant("");
     }
   };
 
@@ -33,9 +35,8 @@ export default function FormulairePaiement({ eleves }: { eleves: EleveSimple[] }
     e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const res = await enregistrerPaiement(formData);
-
+   const formData = new FormData(e.currentTarget);
+    const res = await enregistrerPaiement(null, formData);
     setLoading(false);
 
     if (res.success) {
@@ -63,9 +64,9 @@ export default function FormulairePaiement({ eleves }: { eleves: EleveSimple[] }
           className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
         >
           <option value="">-- Choisir un élève --</option>
-          {eleves.map((e) => (
+          {eleves?.map((e) => (
             <option key={e.id} value={e.id}>
-              {e.nom_prenom} ({e.frais_encadrement.toLocaleString()} FCFA)
+              {e.nom_prenom} ({e.frais_encadrement ? e.frais_encadrement.toLocaleString() : 0} FCFA)
             </option>
           ))}
         </select>
@@ -106,7 +107,7 @@ export default function FormulairePaiement({ eleves }: { eleves: EleveSimple[] }
             type="number"
             name="montant"
             value={montant}
-            onChange={(e) => setMontant(Number(e.target.value))}
+            onChange={(e) => setMontant(e.target.value === "" ? "" : Number(e.target.value))}
             required
             className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
           />
