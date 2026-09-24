@@ -1,7 +1,7 @@
 import {prisma} from "@/lib/prisma";
 import FormulairePaiement from "./nouveau/FormulairePaiement";
 import TablePaiements from "./TablePaiements";
-
+export const dynamic = 'force-dynamic';
 export default async function PaiementPage() {
   // 1. Récupération des élèves pour le formulaire
   const eleves = await prisma.eleve.findMany({

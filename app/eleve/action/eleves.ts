@@ -27,7 +27,7 @@ export async function ajouterEleveAction(formData: FormData) {
     });
 
     // Invalide le cache de la liste des élèves pour afficher le nouvel élève
-    revalidatePath('/eleves');
+    revalidatePath('@/app/paiement/FormulairePaiement');
 
     return { success: true, data: nouveau };
   } catch (error) {

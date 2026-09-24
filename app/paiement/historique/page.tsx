@@ -1,5 +1,4 @@
 import {prisma} from "@/lib/prisma";
-import { OnlineOnlyFeature } from '../../components/OnlineOnlyFeature';
 import HistoriqueMensuel from "./HistoriqueMensuel";
 export const dynamic = 'force-dynamic';
 export default async function HistoriquePaiementsPage() {
@@ -30,9 +29,7 @@ export default async function HistoriquePaiementsPage() {
           Consultez les encaissés et la liste des élèves ayant réglé leur cotisation par mois.
         </p>
       </div>
-      <OnlineOnlyFeature>
       <HistoriqueMensuel paiements={paiements} />
-      </OnlineOnlyFeature>
     </div>
   );
 }

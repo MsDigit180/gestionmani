@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server'; // ✅ Importation corrigée ici
+import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   // 1. Récupérer le cookie d'authentification
@@ -12,8 +12,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 3. Si l'utilisateur est déjà connecté et tente d'aller sur /login
-  
+  // 3. Si l'utilisateur est connecté et tente d'accéder à /login, le rediriger vers le dashboard
+  if (token && pathname === '/login') {
+    const dashboardUrl = new URL('/', request.url);
+    return NextResponse.redirect(dashboardUrl);
+  }
 
   return NextResponse.next();
 }
@@ -21,8 +24,15 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Exclure les fichiers statiques, images, favicon et API
+     * Matcher mis à jour pour PWA :
+     * Exclut :
+     * - api routes
+     * - _next/static & _next/image
+     * - favicon.ico
+     * - manifest.json & manifest.webmanifest
+     * - sw.js & workbox-*.js (fichiers générés par Serwist)
+     * - le dossier icons/ ou les fichiers images png/svg/jpg
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|manifest\.json|manifest\.webmanifest|sw\.js|workbox-.*|icons/.*|.*\\.(?:png|jpg|jpeg|svg|webp)$).*)',
   ],
 };

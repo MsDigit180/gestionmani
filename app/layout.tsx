@@ -1,41 +1,31 @@
-'use client';
 
-import { usePathname } from "next/navigation";
-import SideBar from "./components/SideBar";
+import { Providers } from "./providers";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { PowerSyncProvider } from "./components/PowerSyncProvider";
+import type { Metadata, Viewport } from "next";
+import SyncManager from '@/app/components/SyncManager';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
+export const metadata: Metadata = {
+  title: "Gestion App",
+  description: "Système de gestion hors-ligne",
+  manifest: "/manifest.json", // ◄-- Lien direct vers le fichier statique  
+};
 
-  // Vérifie si l'utilisateur est sur la page de connexion
-  const isLoginPage = pathname === "/login";
+export const viewport: Viewport = {
+  themeColor: "#0f172a",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className="bg-slate-900 text-slate-100 min-h-screen flex">
-        
-        {/* On enveloppe l'application dans PowerSyncProvider */}
-        <PowerSyncProvider>
-          
-          {/* N'affiche la SideBar QUE si on n'est pas sur /login */}
-          {!isLoginPage && <SideBar />}
-
-          {/* Le contenu principal prend tout l'espace si pas de SideBar */}
-          <main className={`flex-1 h-screen overflow-y-auto ${isLoginPage ? 'p-0' : 'p-8'}`}>
-            {children}
-          </main>
-
-          <Toaster position="top-right" richColors theme="dark" />
-
-        </PowerSyncProvider>
-
-      </body>
+      <header className="p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+          <h1 className="text-lg font-bold text-white">Gestion Scolaire</h1>
+          <SyncManager />
+        </header>
+      <Providers >{children}</Providers>
     </html>
   );
 }

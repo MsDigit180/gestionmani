@@ -1,4 +1,3 @@
-import { OnlineOnlyFeature } from '../components/OnlineOnlyFeature';
 import {prisma} from "@/lib/prisma";
 import DashboardClient from "./DashboardClient";
 
@@ -55,7 +54,6 @@ export default async function DashboardPage() {
           Aperçu global de l'activité, des inscriptions et des revenus.
         </p>
       </div>
-      <OnlineOnlyFeature>
       <DashboardClient
         statsGroupes={statsParMois}
         totalEleves={totalEleves}
@@ -63,7 +61,6 @@ export default async function DashboardPage() {
         meilleurMoisInscriptions={meilleurMoisInscriptions}
         meilleurMoisCA={meilleurMoisCA}
       />
-      </OnlineOnlyFeature>
     </div>
   );
 }

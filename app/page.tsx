@@ -4,13 +4,15 @@ import React from 'react';
 import Link from 'next/link';
 import Wrapper from './components/Wrapper';
 import NavBar from './components/NavBar';
+import SidBar from './components/SideBar';
+
 import { Users, CreditCard, Calendar, BarChart3, GraduationCap } from 'lucide-react';
+import SideBar from './components/SideBar';
 
 export default function Home() {
   return (
     <Wrapper>
       <NavBar />
-
       <div className="max-w-6xl mx-auto py-8 px-4 space-y-10">
         {/* Banner de bienvenue */}
         <div className="bg-gradient-to-r from-blue-900/60 via-slate-800 to-slate-900 border border-slate-700/80 p-8 rounded-2xl relative overflow-hidden">

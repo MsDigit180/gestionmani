@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import  {ajouterEleveAction}  from '@/app/eleve/action/eleves'; 
+import { ajouterEleveOffline } from '@/lib/offlineServices'; // 👈 Remplacement de la Server Action
 
 export default function FormulaireEleve() {
   const [loading, setLoading] = useState(false);
@@ -11,17 +11,38 @@ export default function FormulaireEleve() {
     e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const result = await ajouterEleveAction(formData);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
-    if (result.success) {
-      toast.success("Élève ajouté avec succès !");
-      (e.target as HTMLFormElement).reset();
-    } else {
-      toast.error(result.error || "Erreur lors de l'enregistrement.");
+    try {
+      // Extraction des données du formulaire
+      const payload = {
+        nom_prenom: formData.get('nom_prenom') as string,
+        niveau: formData.get('niveau') as string,
+        matiere: (formData.get('matiere') as string) || '',
+        phone: formData.get('phone') as string,
+        quartier: (formData.get('quartier') as string) || '',
+        ecole_frequenter: (formData.get('ecole_frequenter') as string) || '',
+        frais_encadrement: Number(formData.get('frais_encadrement')),
+      };
+
+      // Sauvegarde locale sécurisée dans IndexedDB
+      const result = await ajouterEleveOffline(payload);
+
+      if (result.success) {
+        toast.success(
+          navigator.onLine
+            ? "Élève ajouté et synchronisé !"
+            : "Élève enregistré localement (mode hors-ligne)"
+        );
+        form.reset();
+      }
+    } catch (error) {
+      console.error("Erreur d'enregistrement :", error);
+      toast.error("Erreur lors de l'enregistrement de l'élève.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

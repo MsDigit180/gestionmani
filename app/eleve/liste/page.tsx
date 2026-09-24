@@ -2,10 +2,10 @@ import { prisma } from "@/lib/prisma";
 import DataTableEleve from "./DataTableEleve";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
-import { OnlineOnlyFeature } from '../../components/OnlineOnlyFeature';
 
 export const revalidate = 0; // Récupère toujours les données en temps réel
 export const dynamic = 'force-dynamic';
+
 export default async function ListeElevesPage() {
   // Récupération de tous les élèves depuis PostgreSQL
   const elevesRaw = await prisma.eleve.findMany({
@@ -14,10 +14,14 @@ export default async function ListeElevesPage() {
     },
   });
 
-  // Conversion / Normalisation pour garantir que matiere n'est pas null
+  // Conversion / Normalisation pour garantir la sérialisation JSON
+  // (Conversion des objets Date en ISO String pour le composant Client)
   const eleves = elevesRaw.map((eleve) => ({
     ...eleve,
     matiere: eleve.matiere ?? "",
+    date_inscription: eleve.date_inscription ? eleve.date_inscription.toISOString() : new Date().toISOString(),
+    createdAt: eleve.createdAt ? eleve.createdAt.toISOString() : new Date().toISOString(),
+    updatedAt: eleve.updatedAt ? eleve.updatedAt.toISOString() : new Date().toISOString(),
   }));
 
   return (
@@ -37,9 +41,7 @@ export default async function ListeElevesPage() {
       </div>
 
       {/* Affichage du composant Data Table */}
-      <OnlineOnlyFeature>
       <DataTableEleve initialEleves={eleves} />
-      </OnlineOnlyFeature>
     </div>
   );
 }
